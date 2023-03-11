@@ -9,10 +9,17 @@ workflows:
           branches:
             only:
               - main
+    - deploy:
+        filters:
+          branches:
+            only:
+              - main
+        requires:
+          - build          
 
 jobs:
   build:
-    working_directory: ~/CA1
+    working_directory: ~/CA-DevOps-CI-CD
     docker:
       - image: circleci/node:10.16.3
     steps:
@@ -30,6 +37,13 @@ jobs:
           key: dependency-cache-{{ checksum "package-lock.json"}}
           paths:
           - ./node_modules    
-# CI / Build complete
+  deploy:
+    docker:
+      - image: circleci/node:10.16.3
+    steps:
+      - run:
+          name: deploy-application
+          command: ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_PUBLIC_DNS "export SERVER=\"$SERVER\"; export PRIVATE_KEY=\"$PRIVATE_KEY\";rm -rf CA-DevOps-CI-CD/; ls; git clone https://github.com/jayasrikusuma/CA-DevOps-CI-CD.git; source CA-DevOps-CI-CD/deploy.sh"
+# deployment successful
 
           
